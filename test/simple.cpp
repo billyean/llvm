@@ -28,7 +28,7 @@ void setFuncArgs(Function *func, std::vector<std::string> FunArgs) {
     }
 }
 
-void createMaxFunction(LLVMContext &Context, Module *ModuleOb, IRBuilder<> Builder) {
+void buildMaxFunction(LLVMContext &Context, Module *ModuleOb, IRBuilder<> Builder) {
   // function max's two parameters
   std::vector<std::string> args;
   args.push_back("p1");
@@ -55,7 +55,7 @@ void createMaxFunction(LLVMContext &Context, Module *ModuleOb, IRBuilder<> Build
   Builder.CreateRet(Arg2);
 }
 
-void createSumFunction(LLVMContext &Context, Module *ModuleOb, IRBuilder<> Builder) {
+void buildSumFunction(LLVMContext &Context, Module *ModuleOb, IRBuilder<> Builder) {
   std::vector<std::string> args;
   args.push_back("p1");
   Function *sumFunction = createFunc(Builder, "sum", ModuleOb, args);
@@ -98,14 +98,12 @@ void createSumFunction(LLVMContext &Context, Module *ModuleOb, IRBuilder<> Build
 }
 
 int main(int argc, char *argv[]) {
-
-
     LLVMContext Context;
     // Set module name as test.
     Module *ModuleOb = new Module("test.c", Context);
     IRBuilder<> Builder(Context);
-    createMaxFunction(Context, ModuleOb, Builder);
-    createSumFunction(Context, ModuleOb, Builder);
+    buildMaxFunction(Context, ModuleOb, Builder);
+    buildSumFunction(Context, ModuleOb, Builder);
 
     ModuleOb->getOrInsertGlobal("glv", Builder.getInt32Ty());
     GlobalVariable *glv = ModuleOb->getNamedGlobal("glv");

@@ -7,13 +7,11 @@
 
 using namespace llvm;
 
-Function *createFunction(IRBuilder<> &Builder, std::string Name, Module *ModuleOb, std::vector<std::string> FunArgs) {
-    // Type *u32Ty = Type::getInt32Ty(Builder.getContext());
-    // Type *arrTy = ArrayType::get(u32Ty, 2);
-    Type *ptrTy = Type::getInt32PtrTy(Builder.getContext());
-    FunctionType *funcType = llvm::FunctionType::get(Builder.getInt32Ty(), ptrTy, false);
-    Function *testFunc = llvm::Function::Create(funcType, llvm::Function::ExternalLinkage, Name, ModuleOb);
-    return testFunc;
+
+Function *createFunction(IRBuilder<> &Builder, std::string Name,
+  Module *ModuleOb, Type *resultType, Type *paramType) {
+    FunctionType *funcType = FunctionType::get(resultType, paramType, false);
+    return Function::Create(funcType, llvm::Function::ExternalLinkage, Name, ModuleOb);
 }
 
 void setFuncArgs(Function *func, std::vector<std::string> FunArgs) {
@@ -25,10 +23,17 @@ void setFuncArgs(Function *func, std::vector<std::string> FunArgs) {
     }
 }
 
+//===--------------------------------------------------------------------===//
+/// Create a function call tests like
+/// int test(int* p1)
+/// {
+///     return *(p1 + 1);
+/// }
 void buildTestFunction(LLVMContext &Context, Module *ModuleOb, IRBuilder<> Builder) {
     std::vector<std::string> args;
     args.push_back("p1");
-    Function *testFunc = createFunction(Builder, "test", ModuleOb, args);
+    Function *testFunc = createFunction(Builder, "test", ModuleOb,
+                Builder.getInt32Ty(), Type::getInt32PtrTy(Context));
     setFuncArgs(testFunc, args);
 
     SymbolTableList<Argument>::iterator iter = testFunc->arg_begin();
@@ -43,10 +48,19 @@ void buildTestFunction(LLVMContext &Context, Module *ModuleOb, IRBuilder<> Build
     Builder.CreateRet(resultV);
 }
 
+//===--------------------------------------------------------------------===//
+/// Create a function swap 1st element and 2nd element in a array
+/// void swap(int* p1)
+/// {
+///     int t = p1[0];
+///     p1[0] = p1[1];
+///     p1[1] = t;
+/// }
 void buildSwapFunction(LLVMContext &Context, Module *ModuleOb, IRBuilder<> Builder) {
     std::vector<std::string> args;
     args.push_back("p1");
-    Function *swapFunc = createFunction(Builder, "swap", ModuleOb, args);
+    Function *swapFunc = createFunction(Builder, "swap", ModuleOb,
+                Builder.getVoidTy(), Type::getInt32PtrTy(Context));
     setFuncArgs(swapFunc, args);
 
     SymbolTableList<Argument>::iterator iter = swapFunc->arg_begin();
@@ -61,7 +75,34 @@ void buildSwapFunction(LLVMContext &Context, Module *ModuleOb, IRBuilder<> Build
     Value *v1 = Builder.CreateLoad(gep1, "r1");
     Builder.CreateStore(v1, gep0);
     Builder.CreateStore(v0, gep1);
-    Builder.CreateRet(Builder.getInt32(0));
+}
+
+//===--------------------------------------------------------------------===//
+/// Create a function insert that insert elements to a vector
+/// void insert(vector<int> v)
+/// {
+///     std::vector<int>::iterator it = v.begin();
+///     for (int i = 0; i < 4; i++) {
+///         v.insert(it, (i + 1) * 7);
+///     }
+/// }
+void buildInsertFunction(LLVMContext &Context, Module *ModuleOb, IRBuilder<> Builder) {
+    std::vector<std::string> args;
+    args.push_back("v");
+    Function *insertFunc = createFunction(Builder, "insert", ModuleOb,
+            Builder.getVoidTy(), VectorType::get(Type::getInt32Ty(Context), 4));
+    setFuncArgs(insertFunc, args);
+
+    SymbolTableList<Argument>::iterator iter = insertFunc->arg_begin();
+    Value *Base = &*iter;
+    BasicBlock *entry = BasicBlock::Create(Context, "entry", insertFunc);
+    Builder.SetInsertPoint(entry);
+
+    for (unsigned int i = 0; i < 4; i++) {
+        Builder.CreateInsertElement(Base,
+                Builder.getInt32((i + 1) * 7),  /* Insert value */
+                Builder.getInt32(i)); /* Insert position */
+    }
 }
 
 int main(int argc, char *argv[]) {
@@ -71,6 +112,7 @@ int main(int argc, char *argv[]) {
     IRBuilder<> Builder(Context);
     buildTestFunction(Context, ModuleOb, Builder);
     buildSwapFunction(Context, ModuleOb, Builder);
+    buildInsertFunction(Context, ModuleOb, Builder);
 
     //verifyFunction(*maxFunction);
     ModuleOb->dump();

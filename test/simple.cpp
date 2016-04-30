@@ -4,8 +4,6 @@
 #include "llvm/IR/Argument.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Verifier.h"
-#include <string>
-#include <vector>
 
 using namespace llvm;
 
@@ -28,6 +26,16 @@ void setFuncArgs(Function *func, std::vector<std::string> FunArgs) {
     }
 }
 
+//===--------------------------------------------------------------------===//
+/// Create a function max
+/// int test(int p1, int p2)
+/// {
+///     if (p1 > p2) {
+///         return p1
+///     } else {
+///         return p2;
+///     }
+/// }
 void buildMaxFunction(LLVMContext &Context, Module *ModuleOb, IRBuilder<> Builder) {
   // function max's two parameters
   std::vector<std::string> args;
@@ -35,26 +43,75 @@ void buildMaxFunction(LLVMContext &Context, Module *ModuleOb, IRBuilder<> Builde
   args.push_back("p2");
   Function *maxFunction = createFunc(Builder, "max", ModuleOb, args);
   setFuncArgs(maxFunction, args);
-  BasicBlock *label = BasicBlock::Create(Context, "label", maxFunction);
-  Builder.SetInsertPoint(label);
+  BasicBlock *entry = BasicBlock::Create(Context, "", maxFunction);
+  Builder.SetInsertPoint(entry);
+
+
   SymbolTableList<Argument>::iterator iter = maxFunction->arg_begin();
   Argument *Arg1 = &*iter;
   iter++;
   Argument *Arg2 = &*iter;
-  Value *Compare = Builder.CreateICmpULT(Arg1, Arg2);
-  Value *BV = Builder.CreateZExt(Compare, Type::getInt32Ty(Context), "booltmp");
-  Value *Condtn = Builder.CreateICmpNE(BV, Builder.getInt32(0), "ifcond");
-  BasicBlock *ThenBB = BasicBlock::Create(Context, "then", maxFunction);
-  BasicBlock *ElseBB = BasicBlock::Create(Context, "else", maxFunction);
-  BasicBlock *MergeBB = BasicBlock::Create(Context, "ifcont", maxFunction);
-  Builder.CreateCondBr(Condtn, ThenBB, ElseBB);
-  Builder.SetInsertPoint(ThenBB);
-  Builder.CreateRet(Arg1);
+  Value *Compare = Builder.CreateICmpULT(Arg2, Arg1);
+  // Value *BV = Builder.CreateZExt(Compare, Type::getInt32Ty(Context), "booltmp");
+  // Value *Condtn = Builder.CreateICmpNE(BV, Builder.getInt32(0), "ifcond");
+  // BasicBlock *ThenBB = BasicBlock::Create(Context, "then", maxFunction);
+  // BasicBlock *ElseBB = BasicBlock::Create(Context, "else", maxFunction);
+  // BasicBlock *MergeBB = BasicBlock::Create(Context, "ifcont", maxFunction);
+  // Builder.CreateCondBr(Condtn, ThenBB, ElseBB);
+  // Builder.SetInsertPoint(ThenBB);
+  // Builder.CreateRet(Arg1);
+  //
+  // Builder.SetInsertPoint(ElseBB);
+  // Above will generate IR as follows:
+  // define i32 @sum(i32 %p1) {
+  //   %sums = alloca i32
+  //   store i32 0, i32* %sums
+  //   br label %loop
+  // loop:                                             ; preds = %loop, %0
+  //   %i = phi i32 [ 1, %0 ], [ %nextval, %loop ]
+  //   %suml = load i32, i32* %sums
+  //   %1 = add i32 %i, %suml
+  //   store i32 %1, i32* %sums
+  //   %nextval = add i32 %i, 1
+  //   %2 = icmp ult i32 %i, %p1
+  //   %booltmp = zext i1 %2 to i32
+  //   %loopcond = icmp ne i32 %booltmp, 0
+  //   br i1 %loopcond, label %loop, label %afterloop
+  // afterloop:                                        ; preds = %loop
+  //   %suml1 = load i32, i32* %sums
+  //   ret i32 %suml1
+  // }
 
-  Builder.SetInsertPoint(ElseBB);
-  Builder.CreateRet(Arg2);
+  // By using opt -O3 -S simple.ll we can get simpler instruction as below:
+  // define i32 @max(i32 %p1, i32 %p2) #0 {
+  // label:
+  //   %0 = icmp ult i32 %p1, %p2
+  //   %p1.p2 = select i1 %0, i32 %p1, i32 %p2
+  //   ret i32 %p1.p2
+  // }
+  // Replace first implementation as follows:
+  // Here we need give InsertAtEnd entry, which is extremely important to insert
+  // this select in current position, this does looks like a bug for LLVM.
+  // we should always expect to insert in current position even we don't give
+  // current position.
+  // Submit a bug to LLVM database
+  // https://llvm.org/bugs/show_bug.cgi?id=27578
+  SelectInst *Select  = SelectInst::Create(Compare,
+        Arg1, Arg2, "p1.p2", entry);
+  Builder.CreateRet(Select);
 }
 
+//===--------------------------------------------------------------------===//
+/// Create a function max
+/// int test(int p1)
+/// {
+///     int sum = 0;
+///     int i;
+///     for (i = 0; i < p1; i++) {
+///         sum += i;
+///     }
+///     return sum;
+/// }
 void buildSumFunction(LLVMContext &Context, Module *ModuleOb, IRBuilder<> Builder) {
   std::vector<std::string> args;
   args.push_back("p1");

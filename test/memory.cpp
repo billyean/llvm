@@ -4,6 +4,8 @@
 #include "llvm/IR/Argument.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/DerivedTypes.h"
+#include "llvm/Support/Debug.h"
+#include "llvm/Support/ErrorHandling.h"
 
 using namespace llvm;
 
@@ -36,7 +38,8 @@ void buildTestFunction(LLVMContext &Context, Module *ModuleOb, IRBuilder<> Build
                 Builder.getInt32Ty(), Type::getInt32PtrTy(Context));
     setFuncArgs(testFunc, args);
 
-    SymbolTableList<Argument>::iterator iter = testFunc->arg_begin();
+//    SymbolTableList<Argument>::iterator iter = testFunc->arg_begin();
+    llvm::Function::arg_iterator iter = testFunc->arg_begin();
     Value *Base = &*iter;
     //Value *Base = dyn_cast<Value>Arg;
     BasicBlock *entry = BasicBlock::Create(Context, "entry", testFunc);
@@ -63,7 +66,7 @@ void buildSwapFunction(LLVMContext &Context, Module *ModuleOb, IRBuilder<> Build
                 Builder.getVoidTy(), Type::getInt32PtrTy(Context));
     setFuncArgs(swapFunc, args);
 
-    SymbolTableList<Argument>::iterator iter = swapFunc->arg_begin();
+    Function::arg_iterator iter = swapFunc->arg_begin();
     Value *Base = &*iter;
     //Value *Base = dyn_cast<Value>Arg;
     BasicBlock *entry = BasicBlock::Create(Context, "entry", swapFunc);
@@ -93,7 +96,7 @@ void buildInsertFunction(LLVMContext &Context, Module *ModuleOb, IRBuilder<> Bui
             Builder.getVoidTy(), VectorType::get(Type::getInt32Ty(Context), 4));
     setFuncArgs(insertFunc, args);
 
-    SymbolTableList<Argument>::iterator iter = insertFunc->arg_begin();
+    Function::arg_iterator iter = insertFunc->arg_begin();
     Value *Base = &*iter;
     BasicBlock *entry = BasicBlock::Create(Context, "entry", insertFunc);
     Builder.SetInsertPoint(entry);
@@ -115,6 +118,7 @@ int main(int argc, char *argv[]) {
     buildInsertFunction(Context, ModuleOb, Builder);
 
     //verifyFunction(*maxFunction);
-    ModuleOb->dump();
+    ModuleOb->print(dbgs(), nullptr);
+//    ModuleOb->dump();
     return 0;
 }

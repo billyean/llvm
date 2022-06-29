@@ -4,6 +4,8 @@
 #include "llvm/IR/Argument.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Verifier.h"
+#include "llvm/Support/Debug.h"
+#include "llvm/Support/ErrorHandling.h"
 
 using namespace llvm;
 
@@ -47,7 +49,8 @@ void buildMaxFunction(LLVMContext &Context, Module *ModuleOb, IRBuilder<> Builde
   Builder.SetInsertPoint(entry);
 
 
-  SymbolTableList<Argument>::iterator iter = maxFunction->arg_begin();
+  //SymbolTableList<Argument>::iterator iter = maxFunction->arg_begin();
+  Function::arg_iterator iter = maxFunction->arg_begin();
   Argument *Arg1 = &*iter;
   iter++;
   Argument *Arg2 = &*iter;
@@ -121,7 +124,7 @@ void buildSumFunction(LLVMContext &Context, Module *ModuleOb, IRBuilder<> Builde
   BasicBlock *entry = BasicBlock::Create(Context, "", sumFunction);
   Builder.SetInsertPoint(entry);
 
-  SymbolTableList<Argument>::iterator iter = sumFunction->arg_begin();
+  Function::arg_iterator iter = sumFunction->arg_begin();
   Argument *Arg1 = &*iter;
 
   AllocaInst *Alloca = Builder.CreateAlloca(Type::getInt32Ty(Context), 0, "sums");
@@ -165,10 +168,11 @@ int main(int argc, char *argv[]) {
     ModuleOb->getOrInsertGlobal("glv", Builder.getInt32Ty());
     GlobalVariable *glv = ModuleOb->getNamedGlobal("glv");
     glv->setLinkage(GlobalValue::CommonLinkage);
-    glv->setAlignment(4);
+    glv->setAlignment(MaybeAlign(4));
     glv->setInitializer(Builder.getInt32(13));
 
     //verifyFunction(*maxFunction);
-    ModuleOb->dump();
+    //ModuleOb->dump();
+    ModuleOb->print(errs(), nullptr);
     return 0;
 }

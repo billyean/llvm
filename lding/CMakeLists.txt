@@ -29,4 +29,7 @@ add_executable(lding Lexer.h Lexer.cpp
         AST.cpp
         AST.h
         Sema.cpp
-        Sema.h)
+        Sema.h
+        CodeGen.cpp
+        CodeGen.h
+        LDing.cpp)

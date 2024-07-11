@@ -2,7 +2,7 @@
 
 ## How to  run
 
-assume your arithmetic expression is a + b + 3.(Two variables a, b)
+assume your arithmetic expression is `a * b + 3`.(Two variables a, b)
 
 ```
 # compile your expression into LLVM IR. 

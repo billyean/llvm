@@ -17,9 +17,9 @@ class ASTVisitor {
 public:
     virtual void visit(AST &){};
     virtual void visit(Expr &){};
-    virtual void visit(Factor &){};
-    virtual void visit(BinaryOp &){};
-    virtual void visit(WithDecl &){};
+    virtual void visit(Factor &) = 0;
+    virtual void visit(BinaryOp &) = 0;
+    virtual void visit(WithDecl &) = 0;
 };
 
 class AST {
@@ -35,7 +35,7 @@ public:
 
 class Factor: public Expr {
 public:
-    enum ValueKind { Ident, Number};
+    enum ValueKind { Ident, Number };
 private:
     ValueKind Kind;
     llvm::StringRef Val;
@@ -46,6 +46,7 @@ public:
     ValueKind getKind() { return Kind; }
 
     llvm::StringRef getVal() { return Val; }
+
     void accept(ASTVisitor &V) override {
         V.visit(*this);
     }
@@ -67,6 +68,7 @@ public:
     Expr *getRight() { return Right; }
 
     Operator getOperator() { return Op; }
+
     void accept(ASTVisitor &V) override {
         V.visit(*this);
     }
@@ -82,8 +84,11 @@ public:
     WithDecl(VarVector Vars, Expr *E) : Vars(std::move(Vars)), E(E) {}
 
     VarVector::const_iterator begin() { return Vars.begin(); }
+
     VarVector::const_iterator end() { return Vars.end(); }
+
     Expr *getExpr() { return E; }
+
     void accept(ASTVisitor &V) override {
         V.visit(*this);
     }

@@ -24,13 +24,13 @@ namespace {
         ToIRVisitor(Module *M): M(M), Builder(M->getContext()) {
             VoidTy = Type::getVoidTy(M->getContext());
             Int32Ty = Type::getInt32Ty(M->getContext());
-            PtrTy = PointerType::getUnqual(M->getContext());
+            PtrTy = Type::getInt8PtrTy(M->getContext());
             Int32Zero = ConstantInt::get(Int32Ty, 0L, true);
         }
 
         void run(AST *Tree) {
             FunctionType *MainTy = FunctionType::get(
-                    Int32Ty, {Int32Ty, PtrTy}, false);
+                    Int32Ty, false);
             Function *MainFn = Function::Create(
                     MainTy, GlobalValue::ExternalLinkage, "main", M);
             BasicBlock *BB = BasicBlock::Create(M->getContext(),
@@ -59,7 +59,8 @@ namespace {
                         *M, StrText->getType(),
                         true, GlobalValue::PrivateLinkage,
                         StrText, Twine(Var).concat(".str"));
-                CallInst *Call = Builder.CreateCall(ReadFnTy, ReadFn, {Str});
+                CallInst *Call = Builder.CreateCall(ReadFnTy, ReadFn,
+                                                    {Builder.CreateBitCast(Str, PtrTy)});
                 nameMap[Var] = Call;
             }
             Node.getExpr()->accept(*this);

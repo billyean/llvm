@@ -7,9 +7,10 @@
 
 #include "Lexer.h"
 #include "llvm/Support/raw_ostream.h"
+#include "AST.h"
 
 class Parser {
-    Lexer &lexer;
+    Lexer &Lex;
     Token Tok;
     bool HashError;
     void error() {
@@ -18,7 +19,7 @@ class Parser {
     }
 
     void advance() {
-        lexer.next(Tok);
+        Lex.next(Tok);
     }
 
     bool expect(Token::TokenKind Kind) {
@@ -36,6 +37,21 @@ class Parser {
         advance();
         return false;
     }
+
+    AST *parseCalc();
+    Expr *parseExpr();
+    Expr *parseTerm();
+    Expr *parseFactor();
+public:
+  Parser(Lexer &Lex): Lex(Lex), HashError(false) {
+    advance();
+  }
+
+  bool hashError() {
+    return HashError;
+  }
+
+  AST *parse();
 };
 
 

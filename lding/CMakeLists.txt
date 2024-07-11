@@ -14,22 +14,24 @@ find_package(LLVM REQUIRED CONFIG)
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+list(APPEND CMAKE_MODULE_PATH ${LLVM_DIR})
 
 # Set your project compile flags.
 # E.g. if using the C++ header files
 # you will need to enable C++11 support
 # for your compiler.
-
-include_directories(${LLVM_INCLUDE_DIRS})
-add_definitions(${LLVM_DEFINITIONS})
+separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
+include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
+add_definitions(${LLVM_DEFINITIONS_LIST})
+llvm_map_components_to_libnames(llvm_libs Core)
 add_executable(lding Lexer.h Lexer.cpp
         Lexer.h
         Parser.cpp
         Parser.h
-        AST.cpp
         AST.h
         Sema.cpp
         Sema.h
         CodeGen.cpp
         CodeGen.h
         LDing.cpp)
+target_link_libraries(lding PRIVATE ${llvm_libs})

@@ -52,7 +52,7 @@ public:
 
     void next(Token &token);
 private:
-    void formToken(Token &Result, const char *TokEnd, TokenKind Kind);
+    void formToken(Token &Result, const char *TokEnd, Token::TokenKind Kind);
 };
 
 #endif //LDING_LEXER_H

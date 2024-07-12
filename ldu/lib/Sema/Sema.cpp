@@ -2,6 +2,7 @@
 // Created by haibo on 7/11/24.
 //
 
+#include "AST/AST.h"
 #include "Sema/Sema.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -200,8 +201,17 @@ void Sema::actOnAssignment(StmtList &Stmts, SMLoc Loc,
           tok::getPunctuatorSpelling(tok::assign));
     }
     Stmts.push_back(new AssignmentStatement(Var, E));
+  } else if (auto FP =
+      dyn_cast<FormalParameterDeclaration>(D)) {
+    if (FP->getType() != E->getType()) {
+      Diags.report(
+          Loc, diag::err_types_for_operator_not_compatible,
+          tok::getPunctuatorSpelling(tok::assign));
+    }
+    Stmts.push_back(new AssignmentStatement(FP, E));
   } else if (D) {
-    // TODO Emit error
+    Diags.report(Loc, diag::err_not_yet_implemented,
+                 "other assignments");
   }
 }
 

@@ -154,7 +154,7 @@ void Lexer::next(Token &token) {
         if (*(CurPtr + 1) == '=' ) {
           formToken(token, CurPtr + 2,tok::assign);
         } else {
-          formToken(token, CurPtr + 1, tok::unknown);
+          formToken(token, CurPtr + 1, tok::colon);
         }
         break;
       case '(':

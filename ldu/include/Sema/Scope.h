@@ -16,7 +16,7 @@ class Scope {
   StringMap<Decl *> Symbols;
 
 public:
-  Scope(Scope *Parent = nullptr) : Parent(Parent) {}
+  explicit Scope(Scope *Parent = nullptr) : Parent(Parent) {}
 
   bool insert(Decl *Declaration);
   Decl *lookup(StringRef Name);

@@ -10,4 +10,5 @@ target_link_libraries(ldu
         lduLexer
         lduParser
         lduSema
+        lduCodeGen
 )

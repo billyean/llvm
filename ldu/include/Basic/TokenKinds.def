@@ -1,0 +1,53 @@
+#ifndef TOK
+#define TOK(ID)
+#endif
+#ifndef PUNCTUATOR
+#define PUNCTUATOR(ID, SP) TOK(ID)
+#endif
+#ifndef KEYWORD
+#define KEYWORD(ID, FLAG) TOK(kw_ ## ID)
+#endif
+TOK(unknown)
+TOK(eof)
+TOK(identifier)
+TOK(integer_literal)
+TOK(string_literal)
+PUNCTUATOR(plus, "+")
+PUNCTUATOR(minus, "-")
+PUNCTUATOR(star, "*")
+PUNCTUATOR(slash, "/")
+PUNCTUATOR(l_paren, "(")
+PUNCTUATOR(r_paren, ")")
+PUNCTUATOR(period, ".")
+PUNCTUATOR(comma, ",")
+PUNCTUATOR(semicolon, ";")
+PUNCTUATOR(colon, ":")
+PUNCTUATOR(assign, ":=")
+PUNCTUATOR(equal_to, "=")
+PUNCTUATOR(not_equal, "#")
+PUNCTUATOR(less, "<")
+PUNCTUATOR(less_equal, "<=")
+PUNCTUATOR(greater, ">")
+PUNCTUATOR(greater_equal, ">=")
+KEYWORD(MODULE, KEYALL)
+KEYWORD(FROM, KEYALL)
+KEYWORD(IMPORT, IMPORT)
+KEYWORD(PROCEDURE, KEYALL)
+KEYWORD(CONST, KEYALL)
+KEYWORD(VAR, KEYALL)
+KEYWORD(BEGIN, KEYALL)
+KEYWORD(END, KEYALL)
+KEYWORD(RETURN, KEYALL)
+KEYWORD(IF, KEYALL)
+KEYWORD(THEN, KEYALL)
+KEYWORD(ELSE, KEYALL)
+KEYWORD(WHILE, KEYALL)
+KEYWORD(DO, KEYALL)
+KEYWORD(AND, KEYALL)
+KEYWORD(OR, KEYALL)
+KEYWORD(NOT, KEYALL)
+KEYWORD(DIV, KEYALL)
+KEYWORD(MOD, KEYALL)
+#undef KEYWORD
+#undef PUNCTUATOR
+#undef TOK
